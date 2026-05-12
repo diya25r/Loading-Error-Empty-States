@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { fetchOrders } from '../api/mockApi';
+import { fetchOrders, fetchOrdersEmpty, fetchOrdersError } from '../api/mockApi';
+import { getDemoState } from '../utils/demoState';
 
 export const useOrders = () => {
   const [data, setData] = useState(null);
@@ -10,12 +11,21 @@ export const useOrders = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const result = await fetchOrders();
+      const demoState = getDemoState();
+      if (demoState === 'loading') return;
+      const result =
+        demoState === 'empty'
+          ? await fetchOrdersEmpty()
+          : demoState === 'error'
+            ? await fetchOrdersError()
+            : await fetchOrders();
       setData(result);
     } catch (err) {
       setError(err.message);
     } finally {
-      setIsLoading(false);
+      if (getDemoState() !== 'loading') {
+        setIsLoading(false);
+      }
     }
   }, []);
 

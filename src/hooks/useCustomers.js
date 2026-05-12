@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { fetchCustomers } from '../api/mockApi';
+import { fetchCustomers, fetchCustomersEmpty, fetchCustomersError } from '../api/mockApi';
+import { getDemoState } from '../utils/demoState';
 
 export const useCustomers = () => {
   const [data, setData] = useState(null);
@@ -10,12 +11,21 @@ export const useCustomers = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const result = await fetchCustomers();
+      const demoState = getDemoState();
+      if (demoState === 'loading') return;
+      const result =
+        demoState === 'empty'
+          ? await fetchCustomersEmpty()
+          : demoState === 'error'
+            ? await fetchCustomersError()
+            : await fetchCustomers();
       setData(result);
     } catch (err) {
       setError(err.message);
     } finally {
-      setIsLoading(false);
+      if (getDemoState() !== 'loading') {
+        setIsLoading(false);
+      }
     }
   }, []);
 

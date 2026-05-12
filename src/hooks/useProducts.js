@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { fetchProducts } from '../api/mockApi';
+import { fetchProducts, fetchProductsEmpty, fetchProductsError } from '../api/mockApi';
+import { getDemoState } from '../utils/demoState';
 
 export const useProducts = () => {
   const [data, setData] = useState(null);
@@ -10,12 +11,21 @@ export const useProducts = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const result = await fetchProducts();
+      const demoState = getDemoState();
+      if (demoState === 'loading') return;
+      const result =
+        demoState === 'empty'
+          ? await fetchProductsEmpty()
+          : demoState === 'error'
+            ? await fetchProductsError()
+            : await fetchProducts();
       setData(result);
     } catch (err) {
       setError(err.message);
     } finally {
-      setIsLoading(false);
+      if (getDemoState() !== 'loading') {
+        setIsLoading(false);
+      }
     }
   }, []);
 
